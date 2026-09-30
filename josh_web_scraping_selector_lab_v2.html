@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Josh's Web Scraping Selector Lab</title>
+<style>
+  :root{
+    --bg:#11151b;
+    --panel:#191f27;
+    --panel2:#202833;
+    --text:#edf2f7;
+    --muted:#9eabb9;
+    --border:#344050;
+    --target:#ffd54a;
+    --match:#9b7bff;
+    --both:#63d38a;
+    --error:#ff7676;
+    --ok:#6ee7a2;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  header{
+    padding:18px 22px;
+    border-bottom:1px solid var(--border);
+    background:#0d1117;
+  }
+  header h1{font-size:21px;margin:0 0 4px}
+  header p{margin:0;color:var(--muted);font-size:14px}
+  .app{
+    display:grid;
+    grid-template-columns:minmax(0, 1.35fr) minmax(360px, .65fr);
+    min-height:calc(100vh - 78px);
+  }
+  .left,.right{padding:18px}
+  .left{border-right:1px solid var(--border)}
+  .toolbar{
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px
+  }
+  button{
+    background:#2a3441;color:var(--text);border:1px solid #445267;border-radius:7px;
+    padding:8px 12px;cursor:pointer;font-weight:600
+  }
+  button:hover{background:#344153}
+  button.primary{background:#2563eb;border-color:#3b82f6}
+  button.primary:hover{background:#2f6ff0}
+  .counter{margin-left:auto;color:var(--muted);font-size:13px}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .swatch{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .target-swatch{background:var(--target)}
+  .match-swatch{background:var(--match)}
+  .both-swatch{background:var(--both)}
+  .frame{
+    background:#151a21;color:#dbe4ee;border-radius:9px;border:1px solid var(--border);
+    padding:18px;min-height:490px;overflow:auto
+  }
+  .frame h1,.frame h2,.frame h3{color:#f3f6fa}
+  .frame a{color:#79b8ff}
+  .frame .site-nav{display:flex;gap:12px;flex-wrap:wrap;padding:10px;background:#202833;border:1px solid #344050;border-radius:6px}
+  .frame .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0}
+  .frame .card{border:1px solid #344050;background:#1b222c;padding:10px;border-radius:7px}
+  .frame .badge{display:inline-block;padding:2px 7px;border-radius:12px;background:#2b3542;color:#dbe4ee;font-size:12px}
+  .frame table{border-collapse:collapse;width:100%;margin:12px 0}
+  .frame th,.frame td{border:1px solid #3b4757;padding:7px;text-align:left}
+  .frame .contact-list{padding-left:20px}
+  .frame table{background:#171d25}
+  .frame th{background:#222b36;color:#f3f6fa}
+  .frame td{background:#181f28}
+  .frame input,.frame select,.frame button{
+    background:#0f141a;color:#e6edf3;border:1px solid #46556a;border-radius:5px;padding:5px
+  }
+  .frame footer{margin-top:18px;padding-top:12px;border-top:1px solid #344050;color:#9eabb9}
+  .frame .summary,.frame p,.frame li,.frame label{color:#c9d4df}
+
+  .frame .target-hit{
+    outline:3px solid var(--target)!important;
+    outline-offset:2px;
+    background:color-mix(in srgb, var(--target) 28%, transparent)!important;
+  }
+  .frame .user-hit{
+    outline:3px solid var(--match)!important;
+    outline-offset:2px;
+    background:color-mix(in srgb, var(--match) 22%, transparent)!important;
+  }
+  .frame .target-hit.user-hit{
+    outline-color:var(--both)!important;
+    background:color-mix(in srgb, var(--both) 25%, transparent)!important;
+  }
+  .right{background:var(--panel)}
+  .challenge{
+    background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:16px;margin-bottom:14px
+  }
+  .challenge h2{font-size:16px;margin:0 0 9px}
+  .challenge p{line-height:1.45;margin:0}
+  .spec-token{display:inline-block;padding:1px 5px;border-radius:4px;background:#0d1117;border:1px solid #46556a;color:#f8fafc;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.95em}
+  .spec-label{color:#9fb3c8;font-weight:700}
+  .hint{color:#c7d2fe;font-size:13px;margin-top:9px!important}
+  label{display:block;margin:12px 0 6px;font-size:13px;color:var(--muted);font-weight:700}
+  input[type=text]{
+    width:100%;background:#0d1117;color:#f8fafc;border:1px solid #46556a;border-radius:7px;
+    padding:11px 12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:14px
+  }
+  input[type=text]:focus{outline:2px solid #3b82f6;border-color:#3b82f6}
+  .actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .status{
+    min-height:46px;margin-top:12px;padding:10px;border-radius:7px;background:#121820;
+    border:1px solid var(--border);font-size:14px;line-height:1.4
+  }
+  .status.ok{border-color:#2c8f58;color:var(--ok)}
+  .status.bad{border-color:#9b3d3d;color:#ffb0b0}
+  .source-wrap{margin-top:14px}
+  .source-wrap summary{cursor:pointer;color:#d3dbe6;font-weight:700}
+  pre{
+    white-space:pre-wrap;word-break:break-word;background:#0b0f14;border:1px solid var(--border);
+    border-radius:7px;padding:12px;color:#cbd5e1;max-height:340px;overflow:auto;font-size:12px;line-height:1.45
+  }
+  code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+  .answer{margin-top:10px;color:#fcd34d;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px}
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr}
+    .left{border-right:0;border-bottom:1px solid var(--border)}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Web Scraping Selector Try-It Lab</h1>
+  <p>Read the scraping target, enter the selector you would use with BeautifulSoup, and make your extracted element set exactly match the yellow target set.</p>
+</header>
+
+<div class="app">
+  <section class="left">
+    <div class="toolbar">
+      <span class="counter" id="counter"></span>
+    </div>
+    <div class="legend">
+      <span><i class="swatch target-swatch"></i>target</span>
+      <span><i class="swatch match-swatch"></i>your selector</span>
+      <span><i class="swatch both-swatch"></i>correct overlap</span>
+    </div>
+    <div id="document" class="frame"></div>
+  </section>
+
+  <aside class="right">
+    <div class="challenge">
+      <h2 id="title"></h2>
+      <p id="prompt"></p>
+      <div class="actions" style="margin-top:10px">
+        <button id="hintBtn">Get hint</button>
+      </div>
+      <p class="hint" id="hint" style="display:none"></p>
+      <div class="actions" style="margin-top:14px">
+        <button id="prevBtn">← Previous</button>
+        <button id="nextBtn">Next →</button>
+        <button id="shuffleBtn">Shuffle</button>
+        <button id="clearBtn">Clear match</button>
+      </div>
+    </div>
+
+    <label for="selector">Selector for your scraper</label>
+    <p style="margin:0 0 7px;color:var(--muted);font-size:12px">
+      Think in terms of <code>soup.select("...")</code> or <code>soup.select_one("...")</code>.
+    </p>
+    <input id="selector" type="text" autocomplete="off" spellcheck="false" placeholder="Enter selector">
+    <div class="actions">
+      <button class="primary" id="tryBtn">Try it</button>
+      <button id="answerBtn" style="display:none">Show answer</button>
+    </div>
+    <div id="status" class="status">Enter the selector your scraper would use and press <b>Try it</b>.</div>
+    <div id="answer" class="answer"></div>
+
+    <details class="source-wrap">
+      <summary>View source HTML being scraped</summary>
+      <pre id="source"></pre>
+    </details>
+  </aside>
+</div>
+
+<script>
+const challengeHTML = `
+<main id="catalog">
+  <h1>Linux Systems Field Guide</h1>
+
+  <nav class="site-nav" aria-label="Primary">
+    <a href="/home" class="nav-link">Home</a>
+    <a href="/distros" class="nav-link current" aria-current="page">Distros</a>
+    <a href="/tools" class="nav-link" data-track="tools-nav">Tools</a>
+    <a href="/distros/compare" class="nav-link">Compare Distros</a>
+    <a href="https://kernel.org/" class="nav-link external" rel="help external">Kernel.org</a>
+  </nav>
+
+  <section id="featured" class="cards">
+    <article class="card featured" data-kind="debian" data-status="active">
+      <h2>Debian</h2>
+      <p class="summary">A community-driven distribution known for stability and a huge package ecosystem.</p>
+      <a class="details primary" href="/distros/debian">Distro page</a>
+      <span class="x badge">Server favorite</span>
+    </article>
+
+    <article class="card featured" data-kind="arch" data-status="active">
+      <h2>Arch Linux</h2>
+      <p class="summary">A rolling-release distribution built around simplicity and user control.</p>
+      <a class="details primary" href="/distros/arch">Distro page</a>
+      <span class="badge">Rolling release</span>
+    </article>
+
+    <article class="card archived" data-kind="linux" data-status="archived">
+      <h2>CentOS Linux</h2>
+      <p class="summary">The original CentOS Linux line reached end of life and is retained here as historical context.</p>
+      <a class="details" href="/archive/centos-linux">Archived page</a>
+      <span class="x badge">Historical record</span>
+    </article>
+
+    <article class="card featured special-link-card" data-kind="linux" data-status="active">
+      <a class="feature-link" href="/distros/fedora">
+        <span class="eyebrow">RPM</span>
+        <strong>Fedora Linux</strong>
+        <em>Workstation + Server</em>
+        <span class="x">Fast-moving upstream</span>
+        <small>Current family</small>
+      </a>
+    </article>
+
+    <article class="card featured special-link-card" data-kind="bsd" data-status="active">
+      <a class="feature-link" href="/distros/freebsd">
+        <span class="eyebrow">BSD</span>
+        <strong>FreeBSD</strong>
+        <em>Unix-like OS</em>
+        <span>Not Linux</span>
+        <small>Separate kernel + userland</small>
+      </a>
+    </article>
+
+    <article class="card featured legacy" data-kind="ubuntu" data-status="inactive">
+      <h2>Legacy Ubuntu Snapshot</h2>
+      <p class="summary">An inactive snapshot retained as a selector decoy.</p>
+      <a class="details" href="/distros/ubuntu-legacy">Distro page</a>
+    </article>
+
+    <div class="related-projects">
+      <article class="card related" data-kind="tool" data-status="active">
+        <h2>BusyBox</h2>
+        <p class="summary">A compact collection of Unix utilities often used in embedded Linux systems.</p>
+        <a class="details" href="/tools/busybox">Tool page</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="resources">
+    <h2>Downloads & Resources</h2>
+    <button type="button" class="refresh-resources">Refresh resources</button>
+
+    <article class="card utility-card" data-kind="reference" data-status="active">
+      <h2>Package Manager Cheat Sheet</h2>
+      <p class="summary">Quick comparisons for apt, dnf, pacman, and zypper commands.</p>
+      <a class="details" href="/tools/package-managers">Open reference</a>
+    </article>
+
+    <article class="card utility-card" data-kind="alpine" data-status="active">
+      <h2>Alpine Linux</h2>
+      <p class="summary">A small, security-oriented Linux distribution often used in containers.</p>
+      <a class="details" href="/distros/alpine">Distro page</a>
+    </article>
+    <ul class="resource-list">
+      <li><a href="/files/linux-command-checklist.pdf" data-format="pdf">Linux command checklist</a></li>
+      <li><a href="/files/distro-map.geojson" data-format="geojson">Distro project map</a></li>
+      <li><a href="/files/os-share.csv" data-format="csv">Desktop OS share export</a></li>
+      <li><a href="https://data.example.com/api/v2/distros" data-format="json" class="external">Distro metadata API</a></li>
+      <li><a href="/files/kernel-notes-2024.zip" data-format="zip" class="old">2024 kernel notes archive</a></li>
+    </ul>
+  </section>
+
+  <section id="observations">
+    <h2>Worldwide Desktop OS Market Share — August 2026</h2>
+    <button type="button" class="export-table">Export table</button>
+    <p class="summary">Source: StatCounter Global Stats. Values represent worldwide desktop operating-system usage share.</p>
+    <table class="observations">
+      <thead>
+        <tr><th>Operating System</th><th>Family</th><th>Share</th><th>Open Source</th></tr>
+      </thead>
+      <tbody>
+        <tr data-id="obs-101"><td>Windows</td><td>Windows</td><td class="count">62.67%</td><td data-verified="no">No</td></tr>
+        <tr data-id="obs-102" class="flagged"><td>macOS</td><td>Apple</td><td class="count">15.31%</td><td data-verified="no">No</td></tr>
+        <tr data-id="obs-103"><td>Linux</td><td>Unix-like</td><td class="count">8.88%</td><td data-verified="yes">Yes</td></tr>
+        <tr data-id="test-104"><td>Chrome OS</td><td>Linux-based</td><td class="count">1.53%</td><td data-verified="mixed">Mixed</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="contacts">
+    <h2>Project Contacts</h2>
+    <ul class="contact-list">
+      <li class="contact staff" data-team="infra">
+        <span class="name">Avery Root</span>
+        <a href="mailto:avery@example.org" class="email">avery@example.org</a>
+        <a href="tel:+18055550101" class="phone">+1 805 555 0101</a>
+      </li>
+      <li class="contact volunteer" data-team="infra">
+        <span class="name">Morgan Shell</span>
+        <a href="mailto:morgan@example.org" class="email">morgan@example.org</a>
+      </li>
+      <li class="contact staff" data-team="data">
+        <span class="name">Nia Brooks</span>
+        <a href="mailto:nia@example.org" class="email">nia@example.org</a>
+        <span class="private">internal extension 77</span>
+      </li>
+    </ul>
+  </section>
+
+  <form id="report-form">
+    <h2>Report a Linux System</h2>
+    <label>Distro <input type="text" name="distro" required></label>
+    <label>Role
+      <select name="region">
+        <option value="">Choose...</option>
+        <option value="desktop">Desktop</option>
+        <option value="server" selected>Server</option>
+        <option value="embedded">Embedded</option>
+      </select>
+    </label>
+    <label><input type="checkbox" name="verified" checked> Verified install</label>
+    <button type="submit" data-action="save">Submit</button>
+    <button type="button" data-action="preview">Preview</button>
+    <button type="button" data-action="reset-preview">Reset preview</button>
+    <button type="button" data-action="help">Help</button>
+  </form>
+
+  <footer>
+    <a href="/legal/privacy">Privacy</a>
+    <a href="/legal/terms">Terms</a>
+    <span data-build="2026.09.11">Build 2026.09.11</span>
+  </footer>
+</main>`;
+
+const challenges = [
+  {
+    title:"1. Scrape by tag",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">H2</span> in the document.`,
+    hints:["Think about the simplest selector possible.", "You are selecting by tag name only.", "Use the literal tag name H2."],
+    answer:"h2"
+  },
+  {
+    title:"2. Scrape by class",
+    prompt:`Select every tag with <span class="spec-label">class</span> <span class="spec-token">"featured"</span>.`,
+    hints:["This challenge is about a class.", "Class selectors use a special prefix.", "Use a dot before featured."],
+    answer:".featured"
+  },
+  {
+    title:"3. Scrape by id",
+    prompt:`Select the <span class="spec-label">tag</span> <span class="spec-token">SECTION</span> with <span class="spec-label">id</span> <span class="spec-token">"resources"</span>.`,
+    hints:["This challenge is about an id.", "ID selectors use a special prefix.", "Use # followed by resources."],
+    answer:"#resources"
+  },
+  {
+    title:"4. Tag + class",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">A</span> with <span class="spec-label">class</span> <span class="spec-token">"external"</span>.`,
+    hints:["You need to combine a tag name and a class.", "There should be no space between the tag and class parts.", "Start with A and append .external."],
+    answer:"a.external"
+  },
+  {
+    title:"5. Scrape descendants",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">A</span> anywhere inside the <span class="spec-label">tag</span> <span class="spec-token">SECTION</span> with <span class="spec-label">id</span> <span class="spec-token">"contacts"</span>.`,
+    hints:["The target A tags are somewhere inside one known element.", "A space expresses a descendant relationship.", "Start with #contacts, then select A descendants."],
+    answer:"#contacts a"
+  },
+  {
+    title:"6. Scrape direct children",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">ARTICLE</span> that is a direct child of the element with <span class="spec-label">id</span> <span class="spec-token">"featured"</span>.`,
+    hints:["These ARTICLE tags must be immediate children.", "Use the direct-child combinator rather than a descendant space.", "Use #featured > ARTICLE."],
+    answer:"#featured > article"
+  },
+  {
+    title:"7. Match multiple classes",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">ARTICLE</span> that has BOTH <span class="spec-label">classes</span> <span class="spec-token">"card"</span> and <span class="spec-token">"featured"</span>.`,
+    hints:["The same ARTICLE must satisfy two class conditions.", "Multiple class selectors can be chained.", "Use ARTICLE with both .card and .featured."],
+    answer:"article.card.featured"
+  },
+  {
+    title:"8. Match attribute presence",
+    prompt:`Select every tag that has the <span class="spec-label">attribute</span> <span class="spec-token">data-format</span>, regardless of its value.`,
+    hints:["You only care whether an attribute exists.", "Attribute selectors use square brackets.", "Use [data-format]."],
+    answer:"[data-format]"
+  },
+  {
+    title:"9. Match exact attribute value",
+    prompt:`Select the <span class="spec-label">tag</span> <span class="spec-token">A</span> whose <span class="spec-label">attribute</span> <span class="spec-token">data-format</span> is exactly <span class="spec-token">"geojson"</span>.`,
+    hints:["You need an exact attribute value match.", "Use square brackets with attribute=value.", "Use A[data-format=\"geojson\"]."],
+    answer:'a[data-format="geojson"]'
+  },
+  {
+    title:"10. Match attribute prefix",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">TR</span> whose <span class="spec-label">attribute</span> <span class="spec-token">data-id</span> begins with <span class="spec-token">"obs-"</span>.`,
+    hints:["This is a starts-with attribute test.", "The starts-with operator is ^=.", "Apply ^= to data-id with the value \"obs-\"."],
+    answer:'tr[data-id^="obs-"]'
+  },
+  {
+    title:"11. Match attribute suffix",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">A</span> whose <span class="spec-label">attribute</span> <span class="spec-token">href</span> ends with <span class="spec-token">".pdf"</span>.`,
+    hints:["This is an ends-with attribute test.", "The ends-with operator is $=.", "Apply $= to href with the value \".pdf\"."],
+    answer:'a[href$=".pdf"]'
+  },
+  {
+    title:"12. Match attribute substring",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">A</span> whose <span class="spec-label">attribute</span> <span class="spec-token">href</span> contains <span class="spec-token">"/files/"</span> anywhere in the value.`,
+    hints:["This is an attribute substring test.", "The contains operator is *=.", "Apply *= to href with the value \"/files/\"."],
+    answer:'a[href*="/files/"]'
+  },
+  {
+    title:"13. Exclude unwanted matches",
+    prompt:`Inside the element with <span class="spec-label">id</span> <span class="spec-token">"resources"</span>, select every <span class="spec-label">tag</span> <span class="spec-token">A</span> that does NOT have <span class="spec-label">class</span> <span class="spec-token">"old"</span>.`,
+    hints:["Start with the elements you do want, then exclude one class.", "Use :not(...) for the exclusion.", "Select #resources A descendants and exclude .old."],
+    answer:"#resources a:not(.old)"
+  },
+  {
+    title:"14. First child",
+    prompt:`Select the first <span class="spec-label">tag</span> <span class="spec-token">LI</span> that is a direct child of the element with <span class="spec-label">class</span> <span class="spec-token">"resource-list"</span>.`,
+    hints:["The position matters among sibling LI tags.", "There is a pseudo-class specifically for the first child.", "Use :first-child on the LI."],
+    answer:".resource-list > li:first-child"
+  },
+  {
+    title:"15. Nth child",
+    prompt:`Select the third <span class="spec-label">tag</span> <span class="spec-token">LI</span> that is a direct child of the element with <span class="spec-label">class</span> <span class="spec-token">"resource-list"</span>.`,
+    hints:["The position matters among sibling LI tags.", "Use :nth-child(...) with the desired ordinal.", "Use :nth-child(3)."],
+    answer:".resource-list > li:nth-child(3)"
+  },
+  {
+    title:"16. Nth tag of a type",
+    prompt:`Inside the <span class="spec-label">tag</span> <span class="spec-token">FOOTER</span>, select the second <span class="spec-label">tag</span> <span class="spec-token">A</span>.`,
+    hints:["The position is based on A tags of the same type.", "Use :nth-of-type(...) rather than :nth-child(...).", "Use A:nth-of-type(2) under FOOTER."],
+    answer:"footer > a:nth-of-type(2)"
+  },
+  {
+    title:"17. Scrape by nested structure",
+    prompt:`Inside the <span class="spec-label">tag</span> <span class="spec-token">TABLE</span> with <span class="spec-label">class</span> <span class="spec-token">"observations"</span>, select the <span class="spec-label">tag</span> <span class="spec-token">TD</span> with <span class="spec-label">class</span> <span class="spec-token">"count"</span> in the second <span class="spec-token">TR</span> tag of the <span class="spec-token">TBODY</span>.`,
+    hints:["Break the path into table -> body -> row -> cell.", "The second TR needs a positional pseudo-class.", "Target TBODY > TR:nth-child(2) > TD.count."],
+    answer:".observations tbody > tr:nth-child(2) > td.count"
+  },
+  {
+    title:"18. Scrape within matching containers",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">A</span> with <span class="spec-label">class</span> <span class="spec-token">"email"</span> that is inside an <span class="spec-label">tag</span> <span class="spec-token">LI</span> having BOTH <span class="spec-label">classes</span> <span class="spec-token">"contact"</span> and <span class="spec-token">"staff"</span>.`,
+    hints:["First identify the staff contact container, then descend to email links.", "The LI must have two classes at once.", "Use LI.contact.staff followed by A.email."],
+    answer:"li.contact.staff a.email"
+  },
+  {
+    title:"19. Match a parent by its contents",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">LI</span> with <span class="spec-label">class</span> <span class="spec-token">"contact"</span> that contains an <span class="spec-label">tag</span> <span class="spec-token">A</span> whose <span class="spec-label">attribute</span> <span class="spec-token">href</span> begins with <span class="spec-token">"tel:"</span>.`,
+    hints:["The LI is selected based on what it contains.", "Use :has(...) for parent filtering.", "Inside :has(), look for A[href^=\"tel:\"]."],
+    answer:'li.contact:has(a[href^="tel:"])'
+  },
+  {
+    title:"20. Match a parent by child position",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">A</span> with <span class="spec-label">class</span> <span class="spec-token">"feature-link"</span> where its FOURTH direct child has <span class="spec-label">class</span> <span class="spec-token">"x"</span>.`,
+    hints:["The A tag is selected based on one of its children.", "Use :has(...) with a direct-child condition.", "Inside :has(), require the fourth direct child to have class x."],
+    answer:"a.feature-link:has(> :nth-child(4).x)"
+  },
+  {
+    title:"21. Match form state",
+    prompt:`Inside the <span class="spec-label">tag</span> <span class="spec-token">FORM</span> with <span class="spec-label">id</span> <span class="spec-token">"report-form"</span>, select every currently checked form control.`,
+    hints:["This is about current control state, not an attribute string.", "There is a pseudo-class for checked controls.", "Use :checked inside #report-form."],
+    answer:"#report-form :checked"
+  },
+  {
+    title:"22. Combine attribute filters",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">ARTICLE</span> with <span class="spec-label">class</span> <span class="spec-token">"card"</span> whose <span class="spec-label">attribute</span> <span class="spec-token">data-status</span> is <span class="spec-token">"active"</span> and whose <span class="spec-label">attribute</span> <span class="spec-token">data-kind</span> is NOT <span class="spec-token">"bsd"</span>.`,
+    hints:["Combine positive filters with one exclusion.", "Use :not(...) for the data-kind condition.", "Match active ARTICLE.card elements, then exclude [data-kind=\"bsd\"]."],
+    answer:'article.card[data-status="active"]:not([data-kind="bsd"])'
+  },
+  {
+    title:"23. Scope and exclude",
+    prompt:`Inside the <span class="spec-label">tag</span> <span class="spec-token">FORM</span> with <span class="spec-label">id</span> <span class="spec-token">"report-form"</span>, select every <span class="spec-label">tag</span> <span class="spec-token">BUTTON</span> that is NOT the submit button.`,
+    hints:["You need two separate selector branches.", "Selector alternatives can be combined with a comma.", "One branch can target type=\"submit\"; the other can target data-action=\"preview\"."],
+    answer:'#report-form button:not([type="submit"])'
+  },
+  {
+    title:"24. Compound scraping target",
+    prompt:`Select every <span class="spec-label">tag</span> <span class="spec-token">A</span> inside an <span class="spec-label">tag</span> <span class="spec-token">ARTICLE</span> having BOTH <span class="spec-label">classes</span> <span class="spec-token">"card"</span> and <span class="spec-token">"featured"</span> and <span class="spec-label">attribute</span> <span class="spec-token">data-status</span> equal to <span class="spec-token">"active"</span>, but only where the A tag <span class="spec-label">attribute</span> <span class="spec-token">href</span> begins with <span class="spec-token">"/distros/"</span>.`,
+    hints:["Build this from the outside inward.", "First constrain ARTICLE by classes and data-status, then descend to A.", "Finish with an A[href^=\"/distros/\"] descendant selector."],
+    answer:'article.card.featured[data-status="active"] a[href^="/distros/"]'
+  },
+  {
+    title:"25. Enough information vs. necessary information",
+    prompt:`Inside the <span class="spec-label">tag</span> <span class="spec-token">SECTION</span> with <span class="spec-label">id</span> <span class="spec-token">"resources"</span>, select the <span class="spec-label">tag</span> <span class="spec-token">A</span> with <span class="spec-label">class</span> <span class="spec-token">"external"</span>, whose <span class="spec-label">attribute</span> <span class="spec-token">data-format</span> equals <span class="spec-token">"json"</span>, whose <span class="spec-label">attribute</span> <span class="spec-token">href</span> begins with <span class="spec-token">"https://"</span>, and whose link text is Distro metadata API.`,
+    hints:[
+      "You are allowed to use every fact in the question, but ask whether you need all of them.",
+      "Look for a property in the target HTML that already distinguishes this element from every other element on the page.",
+      "The value of one data-format attribute is unique enough by itself."
+    ],
+    answer:'[data-format="json"]'
+  }
+];
+
+const doc = document.getElementById("document");
+const title = document.getElementById("title");
+const promptEl = document.getElementById("prompt");
+const hintEl = document.getElementById("hint");
+const selectorInput = document.getElementById("selector");
+const statusEl = document.getElementById("status");
+const answerEl = document.getElementById("answer");
+const sourceEl = document.getElementById("source");
+const counter = document.getElementById("counter");
+let index = 0;
+let order = challenges.map((_, i) => i);
+let orderPosition = 0;
+let hintLevel = 0;
+
+doc.innerHTML = challengeHTML;
+sourceEl.textContent = challengeHTML.trim();
+
+const params = new URLSearchParams(window.location.search);
+const answersEnabled = params.get("answers") === "yes";
+if (answersEnabled) {
+  document.getElementById("answerBtn").style.display = "";
+}
+
+function clearClasses(){
+  doc.querySelectorAll(".target-hit,.user-hit").forEach(el=>{
+    el.classList.remove("target-hit","user-hit");
+  });
+}
+
+function loadChallenge(position){
+  orderPosition = (position + order.length) % order.length;
+  index = order[orderPosition];
+  clearClasses();
+  const c = challenges[index];
+  title.textContent = c.title;
+  promptEl.innerHTML = c.prompt;
+  hintLevel = 0;
+  hintEl.style.display = "none";
+  hintEl.textContent = "";
+  document.getElementById("hintBtn").textContent = "Get hint";
+  selectorInput.value = "";
+  statusEl.className = "status";
+  statusEl.innerHTML = "Enter the selector your scraper would use and press <b>Try it</b>.";
+  answerEl.textContent = "";
+  counter.textContent = `${orderPosition+1} / ${order.length}`;
+  let targets = [];
+  try { targets = [...doc.querySelectorAll(c.answer)]; } catch(e){}
+  targets.forEach(el=>el.classList.add("target-hit"));
+  selectorInput.focus();
+}
+
+function trySelector(){
+  doc.querySelectorAll(".user-hit").forEach(el=>el.classList.remove("user-hit"));
+  const raw = selectorInput.value.trim();
+  if(!raw){
+    statusEl.className = "status bad";
+    statusEl.textContent = "Enter a scraping selector first.";
+    return;
+  }
+  let matched;
+  try{
+    matched = [...doc.querySelectorAll(raw)];
+  }catch(err){
+    statusEl.className = "status bad";
+    statusEl.textContent = "Selector syntax error: " + err.message;
+    return;
+  }
+
+  matched.forEach(el=>el.classList.add("user-hit"));
+  const target = [...doc.querySelectorAll(".target-hit")];
+  const targetSet = new Set(target);
+  const matchedSet = new Set(matched);
+  const missing = target.filter(el=>!matchedSet.has(el));
+  const extras = matched.filter(el=>!targetSet.has(el));
+  const exact = missing.length===0 && extras.length===0;
+
+  if(exact){
+    statusEl.className = "status ok";
+    statusEl.innerHTML = `Correct. Your scraper selector would extract exactly <b>${target.length}</b> target element${target.length===1?"":"s"}.`;
+  }else{
+    statusEl.className = "status bad";
+    statusEl.innerHTML =
+      `Not exact yet. Your scraper selector would extract <b>${matched.length}</b> element${matched.length===1?"":"s"}; ` +
+      `<b>${missing.length}</b> target${missing.length===1?" is":"s are"} missing and ` +
+      `<b>${extras.length}</b> extra match${extras.length===1?"":"es"} ${extras.length===1?"was":"were"} selected.`;
+  }
+}
+
+document.getElementById("tryBtn").addEventListener("click", trySelector);
+document.getElementById("nextBtn").addEventListener("click", ()=>loadChallenge(orderPosition+1));
+document.getElementById("prevBtn").addEventListener("click", ()=>loadChallenge(orderPosition-1));
+document.getElementById("shuffleBtn").addEventListener("click", ()=>{
+  for(let i = order.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  orderPosition = 0;
+  loadChallenge(0);
+});
+
+document.getElementById("clearBtn").addEventListener("click", ()=>{
+  doc.querySelectorAll(".user-hit").forEach(el=>el.classList.remove("user-hit"));
+  selectorInput.value="";
+  statusEl.className="status";
+  statusEl.innerHTML="Match cleared.";
+  answerEl.textContent="";
+  selectorInput.focus();
+});
+document.getElementById("answerBtn").addEventListener("click", ()=>{
+  answerEl.textContent = "Answer: " + challenges[index].answer;
+});
+
+document.getElementById("hintBtn").addEventListener("click", ()=>{
+  const c = challenges[index];
+  if(!c.hints || hintLevel >= c.hints.length) return;
+  hintLevel++;
+  hintEl.style.display = "block";
+  hintEl.textContent = `Hint ${hintLevel} of ${c.hints.length}: ${c.hints[hintLevel-1]}`;
+  if(hintLevel < c.hints.length){
+    document.getElementById("hintBtn").textContent = "Get another hint";
+  }else{
+    document.getElementById("hintBtn").textContent = "No more hints";
+  }
+});
+
+selectorInput.addEventListener("keydown", e=>{
+  if(e.key==="Enter"){ e.preventDefault(); trySelector(); }
+});
+
+loadChallenge(0);
+</script>
+</body>
+</html>

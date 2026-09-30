@@ -1,0 +1,153 @@
+<main id="catalog">
+  <h1>Linux Systems Field Guide</h1>
+
+  <nav class="site-nav" aria-label="Primary">
+    <a href="/home" class="nav-link">Home</a>
+    <a href="/distros" class="nav-link current" aria-current="page">Distros</a>
+    <a href="/tools" class="nav-link" data-track="tools-nav">Tools</a>
+    <a href="/distros/compare" class="nav-link">Compare Distros</a>
+    <a href="https://kernel.org/" class="nav-link external" rel="help external">Kernel.org</a>
+  </nav>
+
+  <section id="featured" class="cards">
+    <article class="card featured" data-kind="debian" data-status="active">
+      <h2>Debian</h2>
+      <p class="summary">A community-driven distribution known for stability and a huge package ecosystem.</p>
+      <a class="details primary" href="/distros/debian">Distro page</a>
+      <span class="x badge">Server favorite</span>
+    </article>
+
+    <article class="card featured" data-kind="arch" data-status="active">
+      <h2>Arch Linux</h2>
+      <p class="summary">A rolling-release distribution built around simplicity and user control.</p>
+      <a class="details primary" href="/distros/arch">Distro page</a>
+      <span class="badge">Rolling release</span>
+    </article>
+
+    <article class="card archived" data-kind="linux" data-status="archived">
+      <h2>CentOS Linux</h2>
+      <p class="summary">The original CentOS Linux line reached end of life and is retained here as historical context.</p>
+      <a class="details" href="/archive/centos-linux">Archived page</a>
+      <span class="x badge">Historical record</span>
+    </article>
+
+    <article class="card featured special-link-card" data-kind="linux" data-status="active">
+      <a class="feature-link" href="/distros/fedora">
+        <span class="eyebrow">RPM</span>
+        <strong>Fedora Linux</strong>
+        <em>Workstation + Server</em>
+        <span class="x">Fast-moving upstream</span>
+        <small>Current family</small>
+      </a>
+    </article>
+
+    <article class="card featured special-link-card" data-kind="bsd" data-status="active">
+      <a class="feature-link" href="/distros/freebsd">
+        <span class="eyebrow">BSD</span>
+        <strong>FreeBSD</strong>
+        <em>Unix-like OS</em>
+        <span>Not Linux</span>
+        <small>Separate kernel + userland</small>
+      </a>
+    </article>
+
+    <article class="card featured legacy" data-kind="ubuntu" data-status="inactive">
+      <h2>Legacy Ubuntu Snapshot</h2>
+      <p class="summary">An inactive snapshot retained as a selector decoy.</p>
+      <a class="details" href="/distros/ubuntu-legacy">Distro page</a>
+    </article>
+
+    <div class="related-projects">
+      <article class="card related" data-kind="tool" data-status="active">
+        <h2>BusyBox</h2>
+        <p class="summary">A compact collection of Unix utilities often used in embedded Linux systems.</p>
+        <a class="details" href="/tools/busybox">Tool page</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="resources">
+    <h2>Downloads & Resources</h2>
+    <button type="button" class="refresh-resources">Refresh resources</button>
+
+    <article class="card utility-card" data-kind="reference" data-status="active">
+      <h2>Package Manager Cheat Sheet</h2>
+      <p class="summary">Quick comparisons for apt, dnf, pacman, and zypper commands.</p>
+      <a class="details" href="/tools/package-managers">Open reference</a>
+    </article>
+
+    <article class="card utility-card" data-kind="alpine" data-status="active">
+      <h2>Alpine Linux</h2>
+      <p class="summary">A small, security-oriented Linux distribution often used in containers.</p>
+      <a class="details" href="/distros/alpine">Distro page</a>
+    </article>
+    <ul class="resource-list">
+      <li><a href="/files/linux-command-checklist.pdf" data-format="pdf">Linux command checklist</a></li>
+      <li><a href="/files/distro-map.geojson" data-format="geojson">Distro project map</a></li>
+      <li><a href="/files/os-share.csv" data-format="csv">Desktop OS share export</a></li>
+      <li><a href="https://data.example.com/api/v2/distros" data-format="json" class="external">Distro metadata API</a></li>
+      <li><a href="/files/kernel-notes-2024.zip" data-format="zip" class="old">2024 kernel notes archive</a></li>
+    </ul>
+  </section>
+
+  <section id="observations">
+    <h2>Worldwide Desktop OS Market Share — August 2026</h2>
+    <button type="button" class="export-table">Export table</button>
+    <p class="summary">Source: StatCounter Global Stats. Values represent worldwide desktop operating-system usage share.</p>
+    <table class="observations">
+      <thead>
+        <tr><th>Operating System</th><th>Family</th><th>Share</th><th>Open Source</th></tr>
+      </thead>
+      <tbody>
+        <tr data-id="obs-101"><td>Windows</td><td>Windows</td><td class="count">62.67%</td><td data-verified="no">No</td></tr>
+        <tr data-id="obs-102" class="flagged"><td>macOS</td><td>Apple</td><td class="count">15.31%</td><td data-verified="no">No</td></tr>
+        <tr data-id="obs-103"><td>Linux</td><td>Unix-like</td><td class="count">8.88%</td><td data-verified="yes">Yes</td></tr>
+        <tr data-id="test-104"><td>Chrome OS</td><td>Linux-based</td><td class="count">1.53%</td><td data-verified="mixed">Mixed</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="contacts">
+    <h2>Project Contacts</h2>
+    <ul class="contact-list">
+      <li class="contact staff" data-team="infra">
+        <span class="name">Avery Root</span>
+        <a href="mailto:avery@example.org" class="email">avery@example.org</a>
+        <a href="tel:+18055550101" class="phone">+1 805 555 0101</a>
+      </li>
+      <li class="contact volunteer" data-team="infra">
+        <span class="name">Morgan Shell</span>
+        <a href="mailto:morgan@example.org" class="email">morgan@example.org</a>
+      </li>
+      <li class="contact staff" data-team="data">
+        <span class="name">Nia Brooks</span>
+        <a href="mailto:nia@example.org" class="email">nia@example.org</a>
+        <span class="private">internal extension 77</span>
+      </li>
+    </ul>
+  </section>
+
+  <form id="report-form">
+    <h2>Report a Linux System</h2>
+    <label>Distro <input type="text" name="distro" required></label>
+    <label>Role
+      <select name="region">
+        <option value="">Choose...</option>
+        <option value="desktop">Desktop</option>
+        <option value="server" selected>Server</option>
+        <option value="embedded">Embedded</option>
+      </select>
+    </label>
+    <label><input type="checkbox" name="verified" checked> Verified install</label>
+    <button type="submit" data-action="save">Submit</button>
+    <button type="button" data-action="preview">Preview</button>
+    <button type="button" data-action="reset-preview">Reset preview</button>
+    <button type="button" data-action="help">Help</button>
+  </form>
+
+  <footer>
+    <a href="/legal/privacy">Privacy</a>
+    <a href="/legal/terms">Terms</a>
+    <span data-build="2026.09.11">Build 2026.09.11</span>
+  </footer>
+</main>
